@@ -11,6 +11,9 @@ COPY apps/api-server ./
 # deployment when network is available)
 RUN npm install --production || true
 
+# Generate Prisma client
+RUN npx prisma generate
+
 # Expose port configured in environment
 EXPOSE 3000
 

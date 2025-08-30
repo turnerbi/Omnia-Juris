@@ -1,23 +1,22 @@
 FROM node:18-alpine
 
-# Create app directory
+# Set working directory
 WORKDIR /usr/src/app
 
-# Copy package files and source code
+# Copy only package.json and lock file first for better caching
 COPY apps/api-server/package*.json ./
-COPY apps/api-server ./
-
-# Copy the Prisma schema (important!)
-COPY apps/api-server/prisma ./prisma
 
 # Install dependencies
-RUN npm install --production || true
+RUN npm install
 
-# Generate the Prisma client
+# Copy the entire API server directory (including prisma/)
+COPY apps/api-server ./
+
+# 🔧 Prisma fix: Generate the client
 RUN npx prisma generate
 
-# Expose port configured in environment
+# Expose the port your app runs on
 EXPOSE 3000
 
-# Start the API server
+# Start the app
 CMD ["node", "src/index.js"]

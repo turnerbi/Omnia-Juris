@@ -8,7 +8,7 @@ COPY apps/api-server/prisma ./prisma/
 
 # Copy package.json and install only production dependencies
 COPY apps/api-server/package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Generate Prisma client
 RUN npx prisma generate

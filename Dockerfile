@@ -1,23 +1,25 @@
 FROM node:18-alpine
 
-# Create app directory
+# Set working directory
 WORKDIR /usr/src/app
 
-# Copy Prisma files first
+# Copy only prisma schema first to optimize Docker cache
 COPY apps/api-server/prisma ./prisma/
 
-# Copy package files and install dependencies
+# Copy package.json files
 COPY apps/api-server/package*.json ./
-RUN npm install --production
+
+# Install dependencies
+RUN npm install
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Copy the rest of the app
+# Copy rest of the application
 COPY apps/api-server ./
 
-# Expose port configured in environment
+# Expose app port
 EXPOSE 3000
 
-# Start the API server
+# Run the app
 CMD ["node", "src/index.js"]

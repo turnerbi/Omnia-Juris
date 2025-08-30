@@ -1,0 +1,21 @@
+{
+  "name": "omnia-juris-api",
+  "version": "0.1.0",
+  "description": "API server for Omnia Juris",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "@prisma/client": "latest",
+    "cors": "^2.8.5",
+    "bcrypt": "^5.1.0",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "prisma": "latest",
+    "nodemon": "^3.0.1"
+  }
+}

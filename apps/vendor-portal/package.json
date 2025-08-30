@@ -1,0 +1,15 @@
+{
+  "name": "vendor-portal",
+  "version": "0.1.0",
+  "description": "Vendor portal for Omnia Juris",
+  "private": true,
+  "dependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "react-router-dom": "^6.16.0"
+  },
+  "scripts": {
+    "start": "npx serve -s build",
+    "build": "echo 'Use your preferred React build tool'"
+  }
+}

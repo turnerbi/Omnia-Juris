@@ -1,0 +1,241 @@
+// Prisma schema for Omnia Juris
+//
+// Defines a multi‑tenant data model for a legal case management
+// platform.  Each table includes a foreign key to the tenant so
+// that data is isolated between firms.  The `assignedToIds`
+// field on Case uses a PostgreSQL array to store multiple
+// assignees (attorneys or staff) for a case.  You can migrate
+// these models to your database using `npx prisma migrate dev`.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  users     User[]
+  cases     Case[]
+  appointments Appointment[]
+  invoices  Invoice[]
+  vendorInvoices VendorInvoice[]
+  documents Document[]
+  tasks     Task[]
+  timeEntries TimeEntry[]
+  expenses  Expense[]
+  payments  Payment[]
+
+  messages  Message[]
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  tenantId     Int
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         UserRole
+  createdAt    DateTime @default(now())
+
+  casesAssigned Case[] @relation("CaseAssignees")
+  casesClient   Case[] @relation("CaseClient")
+  appointments  Appointment[] @relation("AppointmentCreator")
+  vendorInvoices VendorInvoice[] @relation("VendorInvoicesByVendor")
+  timeEntries  TimeEntry[]
+  tasks        Task[]
+  documents    Document[] @relation("DocumentUploader")
+}
+
+// Enumeration of user roles
+enum UserRole {
+  admin
+  attorney
+  staff
+  client
+  vendor
+}
+
+model Case {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  title       String
+  type        String
+  status      CaseStatus @default(open)
+  clientUserId Int
+  clientUser  User      @relation("CaseClient", fields: [clientUserId], references: [id])
+  assignedToIds Int[]    @db.Int4[]
+  assignees   User[]    @relation("CaseAssignees", references: [id])
+  createdAt   DateTime @default(now())
+  appointments Appointment[]
+  invoices    Invoice[]
+  vendorInvoices VendorInvoice[]
+  documents   Document[]
+  tasks       Task[]
+  timeEntries TimeEntry[]
+  expenses    Expense[]
+
+  messages   Message[]
+}
+
+enum CaseStatus {
+  open
+  closed
+  pending
+  archived
+}
+
+model Appointment {
+  id          Int      @id @default(autoincrement())
+  tenantId    Int
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+  caseId      Int
+  case        Case     @relation(fields: [caseId], references: [id])
+  createdById Int
+  createdBy   User     @relation("AppointmentCreator", fields: [createdById], references: [id])
+  requestedDate DateTime
+  message     String?
+  status      AppointmentStatus @default(pending)
+  createdAt   DateTime @default(now())
+}
+
+enum AppointmentStatus {
+  pending
+  confirmed
+  cancelled
+}
+
+model Invoice {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  caseId    Int
+  case      Case     @relation(fields: [caseId], references: [id])
+  amount    Decimal  @db.Decimal(12, 2)
+  description String?
+  status    InvoiceStatus @default(pending)
+  issuedAt  DateTime @default(now())
+  payments  Payment[]
+}
+
+enum InvoiceStatus {
+  pending
+  sent
+  paid
+  overdue
+  cancelled
+}
+
+model VendorInvoice {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  caseId    Int
+  case      Case     @relation(fields: [caseId], references: [id])
+  vendorId  Int
+  vendor    User     @relation("VendorInvoicesByVendor", fields: [vendorId], references: [id])
+  amount    Decimal  @db.Decimal(12, 2)
+  description String?
+  status    VendorInvoiceStatus @default(pending)
+  submittedAt DateTime @default(now())
+}
+
+enum VendorInvoiceStatus {
+  pending
+  approved
+  rejected
+  paid
+}
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  caseId    Int
+  case      Case     @relation(fields: [caseId], references: [id])
+  uploadedById Int
+  uploadedBy User     @relation("DocumentUploader", fields: [uploadedById], references: [id])
+  filePath  String
+  fileName  String
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  caseId    Int
+  case      Case     @relation(fields: [caseId], references: [id])
+  description String
+  assignedToId Int
+  assignedTo User      @relation(fields: [assignedToId], references: [id])
+  dueDate   DateTime?
+  status    TaskStatus @default(open)
+  createdAt DateTime @default(now())
+}
+
+enum TaskStatus {
+  open
+  in_progress
+  completed
+  cancelled
+}
+
+model TimeEntry {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  caseId    Int
+  case      Case     @relation(fields: [caseId], references: [id])
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  hours     Float
+  rate      Decimal  @db.Decimal(12, 2)
+  description String?
+  createdAt DateTime @default(now())
+}
+
+model Expense {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  caseId    Int
+  case      Case     @relation(fields: [caseId], references: [id])
+  amount    Decimal  @db.Decimal(12, 2)
+  vendor    String?
+  category  String?
+  description String?
+  createdAt DateTime @default(now())
+}
+
+model Payment {
+  id        Int      @id @default(autoincrement())
+  tenantId  Int
+  tenant    Tenant   @relation(fields: [tenantId], references: [id])
+  invoiceId Int
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  amount    Decimal  @db.Decimal(12, 2)
+  paidAt    DateTime @default(now())
+}
+
+// Messages exchanged between attorneys and clients (or other roles) on a case
+model Message {
+  id         Int      @id @default(autoincrement())
+  tenantId   Int
+  tenant     Tenant   @relation(fields: [tenantId], references: [id])
+  caseId     Int
+  case       Case     @relation(fields: [caseId], references: [id])
+  senderId   Int
+  sender     User     @relation(fields: [senderId], references: [id])
+  receiverId Int
+  receiver   User     @relation(fields: [receiverId], references: [id])
+  text       String
+  createdAt  DateTime @default(now())
+}

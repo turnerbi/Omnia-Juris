@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    container_name: omnia_juris_db
+    restart: always
+    environment:
+      POSTGRES_DB: omnia_juris
+      POSTGRES_USER: omnia
+      POSTGRES_PASSWORD: omnia
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: omnia_juris_api
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://omnia:omnia@db:5432/omnia_juris
+      - JWT_SECRET=${JWT_SECRET:-changeme}
+      - PORT=3000
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/api-server:/usr/src/app
+volumes:
+  db_data:

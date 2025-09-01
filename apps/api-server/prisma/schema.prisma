@@ -51,6 +51,9 @@ model User {
   timeEntries  TimeEntry[]
   tasks        Task[]
   documents    Document[] @relation("DocumentUploader")
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
 }
 
 // Enumeration of user roles
@@ -228,14 +231,10 @@ model Payment {
 // Messages exchanged between attorneys and clients (or other roles) on a case
 model Message {
   id         Int      @id @default(autoincrement())
-  tenantId   Int
-  tenant     Tenant   @relation(fields: [tenantId], references: [id])
-  caseId     Int
-  case       Case     @relation(fields: [caseId], references: [id])
   senderId   Int
-  sender     User     @relation(fields: [senderId], references: [id])
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
   receiverId Int
-  receiver   User     @relation(fields: [receiverId], references: [id])
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
   text       String
   createdAt  DateTime @default(now())
 }

@@ -71,7 +71,7 @@ model Case {
   status      CaseStatus @default(open)
   clientUserId Int
   clientUser  User      @relation("CaseClient", fields: [clientUserId], references: [id])
-  assignedToIds Int[]    @db.Int4[]
+  assignedToIds Int[]    
   assignees   User[]    @relation("CaseAssignees", references: [id])
   createdAt   DateTime @default(now())
   appointments Appointment[]

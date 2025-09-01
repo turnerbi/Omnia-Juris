@@ -8,14 +8,14 @@
     "dev": "nodemon src/index.js"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "@prisma/client": "latest",
-    "cors": "^2.8.5",
+    "@prisma/client": "^6.15.0",
     "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
     "jsonwebtoken": "^9.0.0"
   },
   "devDependencies": {
-    "prisma": "latest",
-    "nodemon": "^3.0.1"
+    "nodemon": "^3.0.1",
+    "prisma": "latest"
   }
 }
